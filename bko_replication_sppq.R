@@ -197,7 +197,6 @@ data$text <- processed_text
 
 write_csv(data,"ProcessedFullCorpus_state.csv")
 
-
 py_run_file("ml_classifier_final.py")
 
 ####Table 4
@@ -209,7 +208,8 @@ handle <- data %>% lm_robust(Has_Handle ~ fem_dum + dem_dum,data=., fixed_effect
 
 counts <- data %>% lm_robust(counts ~ fem_dum + dem_dum,data=., fixed_effects = ~ state_num) 
 
-counts_tobit <- data %>% tobit(counts_tobit ~ fem_dum + dem_dum + factor(state_num),left=0,right=Inf,,data=.) 
+counts_tobit <- data %>% tobit(counts_tobit ~ fem_dum + dem_dum + 
+                                 factor(state_num),left=0,right=Inf,data=.) 
 
 modelsummary(list(handle, counts, counts_tobit), coef_omit = 'factor')
 
