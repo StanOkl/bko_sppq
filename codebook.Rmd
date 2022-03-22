@@ -1,0 +1,67 @@
+---
+title: "Codebook for Do Male and Female Legislators have Different Twitter Communication Styles?"
+author: |
+ | Dan Butler -- Washington University of St. Louis -- daniel.butler@wustl.edu
+ | Thad Kousser -- University of California, San Diego -- tkousser@ucsd.edu
+ | Stan Oklobdzija -- University of California, Riverside -- stano@ucr.edu
+date: "`r format(Sys.Date(),'%B %d, %Y')`"
+header-includes:
+- \setlength\parindent{24pt}
+- \usepackage{indentfirst}
+- \usepackage{float}
+- \usepackage{graphicx}
+- \usepackage{lscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+- \usepackage{tabu}
+- \usepackage{booktabs}
+
+
+output: 
+  bookdown::pdf_document2:
+    keep_tex: true
+    toc: no
+    fig_caption: yes
+
+---
+
+Codebook for Lower_House_Tweeting_Full with Ideal Points.dta
+
+
+```{r setup-data-test, echo=F, include=F}
+library(tidyverse)
+library(reactable)
+library(kableExtra)
+library(flextable)
+set_flextable_defaults(fonts_ignore=TRUE)
+
+
+df <- tibble(
+  Variable = c("has_handle", "count", "count_tobit", "fem_dum", "dem_dum","state","sentiment_total","womens_issues","education","health_care", "np_score","ideology_total","BlackorLatino_legislator","squire","years_since_elected"),
+  `Variable Definition` = c("Does the legislator have a Twitter handle", "How many times has the legislator tweeted?", "How many times has the legislator tweeted? (NAs coded as 0)", "Dummy variable if the legislator is female.","Dummy variable if the legislator is a Democrat","State","Pct of positive tweets sent by a legislator.","Pct. of tweets about education or health care.","Pct. of tweets about education.","Pct. of tweets about health care.","Shor-McCarty NPAT Score","Ideology based on proportion of liberal or conservative tweets.","Dummy variable indicating if legislator is Black or Latinx.","Squire Index of legislative professionalism for the chamber.","Years since legislator was elected."),
+  `Value Labels` = c("Yes=1, No=0", "", "", "Female=1, Not female=0","Democrat=1, Not Democrat=0","Name of State","","","","","","Ideological score scaled between -1 and 1, with positive numbers indicating more conservative tweets.","Black or Latinx=1, Other races=0.","",""),
+  Source = c("","","","","","","","","","",'Shor (2020)',"","","Squire (2017)","")
+)
+
+```
+
+
+```{r, test, echo=F}
+# reactable(df)
+# 
+ kable(df, booktabs=T) %>% kable_styling(latex_options=c("striped","scale_down"))
+
+#flextable(df) 
+
+
+```
+
+\newpage
+
+
+## References {-}
+
+Shor, Boris, 2020, "Aggregate State Legislator Shor-McCarty Ideology Data, July 2020 update", https://doi.org/10.7910/DVN/AP54NE, Harvard Dataverse, V1, UNF:6:PPNnE2bgMV3PZ8nP1fJtxg== [fileUNF]]
+
+Squire, Peverill. 2017. “A Squire Index Update.” State Politics and Policy Quarterly. 17 (4):
+361-371.

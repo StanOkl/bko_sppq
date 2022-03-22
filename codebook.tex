@@ -1,0 +1,148 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Codebook for Do Male and Female Legislators have Different Twitter Communication Styles?},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{5}
+\setlength\parindent{24pt}
+\usepackage{indentfirst}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{lscape}
+\newcommand{\blandscape}{\begin{landscape}}
+\newcommand{\elandscape}{\end{landscape}}
+\usepackage{tabu}
+\usepackage{booktabs}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+\ifluatex
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\title{Codebook for Do Male and Female Legislators have Different Twitter Communication Styles?}
+\author{Dan Butler -- Washington University of St.~Louis -- \href{mailto:daniel.butler@wustl.edu}{\nolinkurl{daniel.butler@wustl.edu}}\\
+Thad Kousser -- University of California, San Diego -- \href{mailto:tkousser@ucsd.edu}{\nolinkurl{tkousser@ucsd.edu}}\\
+Stan Oklobdzija -- University of California, Riverside -- \href{mailto:stano@ucr.edu}{\nolinkurl{stano@ucr.edu}}}
+\date{March 21, 2022}
+
+\begin{document}
+\maketitle
+
+Codebook for Lower\_House\_Tweeting\_Full with Ideal Points.dta
+
+\begin{table}
+\centering
+\resizebox{\linewidth}{!}{
+\begin{tabular}{llll}
+\toprule
+Variable & Variable Definition & Value Labels & Source\\
+\midrule
+\cellcolor{gray!6}{has\_handle} & \cellcolor{gray!6}{Does the legislator have a Twitter handle} & \cellcolor{gray!6}{Yes=1, No=0} & \cellcolor{gray!6}{}\\
+count & How many times has the legislator tweeted? &  & \\
+\cellcolor{gray!6}{count\_tobit} & \cellcolor{gray!6}{How many times has the legislator tweeted? (NAs coded as 0)} & \cellcolor{gray!6}{} & \cellcolor{gray!6}{}\\
+fem\_dum & Dummy variable if the legislator is female. & Female=1, Not female=0 & \\
+\cellcolor{gray!6}{dem\_dum} & \cellcolor{gray!6}{Dummy variable if the legislator is a Democrat} & \cellcolor{gray!6}{Democrat=1, Not Democrat=0} & \cellcolor{gray!6}{}\\
+\addlinespace
+state & State & Name of State & \\
+\cellcolor{gray!6}{sentiment\_total} & \cellcolor{gray!6}{Pct of positive tweets sent by a legislator.} & \cellcolor{gray!6}{} & \cellcolor{gray!6}{}\\
+womens\_issues & Pct. of tweets about education or health care. &  & \\
+\cellcolor{gray!6}{education} & \cellcolor{gray!6}{Pct. of tweets about education.} & \cellcolor{gray!6}{} & \cellcolor{gray!6}{}\\
+health\_care & Pct. of tweets about health care. &  & \\
+\addlinespace
+\cellcolor{gray!6}{np\_score} & \cellcolor{gray!6}{Shor-McCarty NPAT Score} & \cellcolor{gray!6}{} & \cellcolor{gray!6}{Shor (2020)}\\
+ideology\_total & Ideology based on proportion of liberal or conservative tweets. & Ideological score scaled between -1 and 1, with positive numbers indicating more conservative tweets. & \\
+\cellcolor{gray!6}{BlackorLatino\_legislator} & \cellcolor{gray!6}{Dummy variable indicating if legislator is Black or Latinx.} & \cellcolor{gray!6}{Black or Latinx=1, Other races=0.} & \cellcolor{gray!6}{}\\
+squire & Squire Index of legislative professionalism for the chamber. &  & Squire (2017)\\
+\cellcolor{gray!6}{years\_since\_elected} & \cellcolor{gray!6}{Years since legislator was elected.} & \cellcolor{gray!6}{} & \cellcolor{gray!6}{}\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\newpage
+
+\hypertarget{references}{%
+\subsection*{References}\label{references}}
+\addcontentsline{toc}{subsection}{References}
+
+Shor, Boris, 2020, ``Aggregate State Legislator Shor-McCarty Ideology Data, July 2020 update'', \url{https://doi.org/10.7910/DVN/AP54NE}, Harvard Dataverse, V1, UNF:6:PPNnE2bgMV3PZ8nP1fJtxg== {[}fileUNF{]}{]}
+
+Squire, Peverill. 2017. ``A Squire Index Update.'' State Politics and Policy Quarterly. 17 (4):
+361-371.
+
+\end{document}
