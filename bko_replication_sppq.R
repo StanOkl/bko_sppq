@@ -202,7 +202,43 @@ py_run_file("ml_classifier_final.py")
 ####Table 4
 ###Does Gender Affect Twitter Activity?
 
-data <- read_dta("Lower_House_Tweeting_Full with Ideal Points.dta")
+###Create data file
+
+##load shor mccarty data from
+##https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/AP54NE
+shor_mc <- read_dta("shor-mccarty.dta") %>%
+  filter(!is.na(hdistrict2016)) %>%
+  mutate(lastname = gsub("\\,.*","",name),
+         firstname = gsub(".*\\, ","",name)) %>%
+  rename("state"=st) %>%
+  group_by(state,name) %>%
+  mutate(count=n()) %>%
+  filter(count <2)
+
+##load collapsed tweet frequencies
+
+lh_tweets <- read_dta("Lower_House_Tweeting_FullSample.dta", encoding="latin1") %>%
+  filter(fullname != "") %>%
+  group_by(state,lastname, firstname) %>%
+  mutate(count=n()) %>%
+  distinct(state,lastname,firstname, .keep_all = T) %>%
+  select(-party)
+
+data <- left_join(lh_tweets, shor_mc, by=c("state","lastname","firstname")) %>%
+  distinct() %>%
+  mutate(fem_dum = ifelse(gender=="F",1,0),
+         rep_dum = ifelse(party=="Rep" | party=="R",1,0),
+         dem_dum = ifelse(party %in% c("Dem","Dem ","D","De,"), 1,0)) %>%
+  group_by(state, district, party) %>%
+  mutate(ave_gender=mean(fem_dum),
+         bos_dum = ifelse(ave_gender > 0 & ave_gender < 1, 1,0),
+         counts_tobit = ifelse(is.na(counts),0,counts)) 
+
+
+#data <- read_dta("Lower_House_Tweeting_Full with Ideal Points.dta")
+
+##multiply all percentages by 100
+data <- data %>% mutate_at(c("sentiment_total", "health_care", "education", "womens_issues"), list(~.*100))
 
 handle <- data %>% lm_robust(Has_Handle ~ fem_dum + dem_dum,data=., fixed_effects = ~ state_num) 
 
@@ -246,7 +282,7 @@ handle <- data %>% lm_robust(Has_Handle ~ fem_dum + BlackorLatino_legislator + f
 
 counts <- data %>% lm_robust(counts ~ fem_dum + BlackorLatino_legislator + fem_dum*BlackorLatino_legislator+ dem_dum,data=., fixed_effects = ~ state_num) 
 
-counts_tobit <- data %>% tobit(counts_tobit ~ fem_dum + BlackorLatino_legislator + fem_dum*BlackorLatino_legislator+ dem_dum + factor(state_num),left=0,right=Inf,,data=.) 
+counts_tobit <- data %>% tobit(counts_tobit ~ fem_dum + BlackorLatino_legislator + fem_dum*BlackorLatino_legislator+ dem_dum + factor(state_num),left=0,right=Inf,data=.) 
 
 modelsummary(list(handle, counts, counts_tobit), coef_omit = 'factor')
 
@@ -264,6 +300,78 @@ health_care <- lm_robust(health_care ~ fem_dum + BlackorLatino_legislator + fem_
 education <- lm_robust(education ~ fem_dum + BlackorLatino_legislator + fem_dum*BlackorLatino_legislator + dem_dum, data=data,fixed_effects = ~ state_num)
 
 modelsummary(list(sent_tot, wom_iss, education,health_care))
+
+###Appendix Table 1
+###Testing the Validity of Tweet-Based Ideology Measure
+
+all <- data %>% lm(np_score ~ ideology_total, data=.)
+
+dem <- data %>% filter(party=="D") %>% lm(np_score ~ ideology_total, data=.)
+
+gop <- data %>% filter(party=="R") %>% lm(np_score ~ ideology_total, data=.)
+
+all_fe <- data %>% lm_robust(np_score ~ ideology_total, fixed_effects = ~state_num, data=.)
+
+dem_fe <- data %>% filter(party=="D") %>% lm_robust(np_score ~ ideology_total, fixed_effects = ~state_num, data=.)
+
+gop_fe <- data %>% filter(party=="R") %>% lm_robust(np_score ~ ideology_total, fixed_effects = ~state_num, data=.)
+
+
+modelsummary(list(all,dem,gop,all_fe,dem_fe,gop_fe))
+
+##Appendix Table 2. How does Legislative Professionalism Shape the Impact of Gender on
+###Twitter Activity?
+
+handle <- data %>% lm_robust(Has_Handle ~ fem_dum + dem_dum +SquireXfemale,data=., fixed_effects = ~ state_num) 
+
+counts <- data %>% lm_robust(counts ~ fem_dum + dem_dum+SquireXfemale,data=., fixed_effects = ~ state_num) 
+
+counts_tobit <- data %>% tobit(counts_tobit ~ fem_dum + dem_dum+SquireXfemale + 
+                                 state,left=0,right=Inf,data=.) 
+
+modelsummary(list(handle, counts, counts_tobit), coef_omit = 'state')
+
+##Appendix Table 3. How does Legislative Professionalism Shape the Impact of Gender on
+##Sentiment and Attention to “Women’s Issues”?
+  
+sent_tot <- lm_robust(sentiment_total ~ fem_dum + dem_dum+SquireXfemale, data=data,fixed_effects = ~ state_num)
+
+wom_iss <- lm_robust(womens_issues ~ fem_dum + dem_dum+SquireXfemale, data=data,fixed_effects = ~ state_num)
+
+health_care <- lm_robust(health_care ~ fem_dum + dem_dum+SquireXfemale, data=data,fixed_effects = ~ state_num)  
+
+education <- lm_robust(education ~ fem_dum + dem_dum+SquireXfemale, data=data,fixed_effects = ~ state_num)
+
+modelsummary(list(sent_tot, wom_iss, education,health_care))
+
+##Appendix Table 4. Controlling for Years Since First Election to Estimate the Impact of
+##Gender on Twitter Activity
+
+handle <- data %>% lm_robust(Has_Handle ~ fem_dum + dem_dum +years_since_elected,data=., fixed_effects = ~ state_num) 
+
+counts <- data %>% lm_robust(counts ~ fem_dum + dem_dum + years_since_elected,data=., fixed_effects = ~ state_num) 
+
+counts_tobit <- data %>% tobit(counts_tobit ~ fem_dum + dem_dum + 
+                                 state+ years_since_elected,left=0,right=Inf,data=.) 
+
+modelsummary(list(handle, counts, counts_tobit), coef_omit = 'state')
+
+
+###Appendix Table 5. Controlling for Years Since First Election to Estimate the Impact of
+##Gender on Sentiment and Attention to “Women’s Issues”
+
+sent_tot <- lm_robust(sentiment_total ~ fem_dum + dem_dum+ years_since_elected, data=data,fixed_effects = ~ state_num)
+
+wom_iss <- lm_robust(womens_issues ~ fem_dum + dem_dum+ years_since_elected, data=data,fixed_effects = ~ state_num)
+
+health_care <- lm_robust(health_care ~ fem_dum + dem_dum+ years_since_elected, data=data,fixed_effects = ~ state_num)  
+
+education <- lm_robust(education ~ fem_dum + dem_dum+ years_since_elected, data=data,fixed_effects = ~ state_num)
+
+modelsummary(list(sent_tot, wom_iss, education,health_care))
+
+
+
 
 
 ##Figure 1
