@@ -1,7 +1,24 @@
 
 # coding: utf-8
 
-# In[1]:
+
+###Check which packages are already installed and install missing packages
+
+import pkg_resources
+
+required = {'sklearn','nltk','pandas','numpy','matplotlib'}
+
+installed =  {pkg.key for pkg in pkg_resources.working_set}
+
+missing = required - installed 
+
+if missing:
+    python = sys.executable
+    subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
+
+
+
+
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
@@ -82,7 +99,7 @@ pd.options.display.float_format = '{:.2f}'.format
 stemmer = PorterStemmer()
 data = pd.read_csv('training_data_stateprez_processed.csv')
 
-data=shuffle(data)
+data = data.sample(frac=1, random_state=858)
 
 ##remove NaN and drop X column
 
@@ -91,13 +108,12 @@ data=data.dropna()
 ####This is criteria for Pre-Processing. 
 ##Calvin pre-processed along four conditions.
 ##The first is what emerges from the R script. 
-##Each condition processes the text along a specific process to match what Calvin did.
 
 screen_names = pd.read_csv("names_to_remove.csv")
 
-##randomly sample 9094 rows
+##Train on first 9,094 rows
 
-data = data.sample(n=9094)
+data = data[:9093]
 
 # take the 'text' column from the dataframe, and 
 # convert the text to vectors
@@ -112,7 +128,7 @@ text_vec = text2vec(full_text, use_stemmer=False)
 ##Find the number of rows in the training data, reserve 1010 test tweets
 ##Train on 8,084 tweets
 ##There are 10105 tweets in total
-test_rows = 2020
+test_rows = 1010
 
 nrows = len(full_text)
 train_end= nrows-test_rows
@@ -370,7 +386,7 @@ for key in keys:
 
 accuracy_df.to_csv('accuracy_output.csv', index=False)
 
-quit()
+#quit()
 
 # # Step Four: Final Classifications
 # Having the appropriate models and hyper-parameter settings, we can use the models to predict labels for the entire corpus of tweets. At this step, we take all 7525 human-coded-tweets as the training set, and the whole corpus as the test set.

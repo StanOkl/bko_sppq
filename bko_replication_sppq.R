@@ -1,15 +1,19 @@
+#packages necessary for analysis
+
+packages <- c("data.table","tidyverse","readxl","irr",
+              "reticulate","haven","estimatr","stringr","tm",
+              "modelsummary","AER")
+
+##install any uninstalled packages
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
 #Load packages
-library(data.table)
-library(tidyverse)
-library(readxl)
-library(irr)
-library(reticulate)
-library(haven)
-library(estimatr)
-library(stringr)
-library(tm)
-library(modelsummary)
-library(AER)
+invisible(lapply(packages, library, character.only = TRUE))
+
+##set display options
 options(scipen=999)
 options(dplyr.width=Inf)
 
@@ -18,11 +22,11 @@ setwd("bko_sppq_rep")
 ####Measures of Intercoder Reliability: Humans Agreeing with Humans
 
 ###get human coded tweets
-joined.2coders.data <- read_csv('Training_Tweets_8-9.csv')
+joined.2coders.data <- read_csv('irr_training_tweets.csv')
 
 ###
-df.tweets <- data.frame(joined.2coders.data[!is.na(joined.2coders.data$coder1.Sentiment....1.negative..0.neutral..1.positive.) &
-                                              !is.na(joined.2coders.data$coder2.Sentiment....1.negative..0.neutral..1.positive.),])
+df.tweets <- data.frame(joined.2coders.data[!is.na(joined.2coders.data$coder1.Sentiment) &
+                                              !is.na(joined.2coders.data$coder2.Sentiment),])
 
 df.tweets[is.na(df.tweets)] <- 0
 
@@ -40,7 +44,7 @@ inter.rater.reliability <- data.frame(variable=as.character(0), pct=as.numeric(0
                                       cohens.kappa=as.numeric(0),stringsAsFactors = F)
 
 for (i in var.names){
-  matches <- df.tweets[,5+counter]==df.tweets[,23+counter]
+  matches <- df.tweets[,5+counter]==df.tweets[,24+counter]
   y <- length(matches[matches==TRUE])/length(matches)
   inter.rater.reliability[counter+1,1] <- as.character(gsub("coder1.","",i))
   inter.rater.reliability[counter+1,2] <- y
@@ -51,7 +55,7 @@ for (i in var.names){
 
 counter = 0
 for (i in var.names){
-  x <- kappa2(df.tweets[,c(5+counter,23+counter)], "unweighted")
+  x <- kappa2(df.tweets[,c(5+counter,24+counter)], "unweighted")
   inter.rater.reliability[counter+1,3] <- x$value
   counter = counter +1
 }
@@ -79,6 +83,25 @@ inter.rater.reliability %>%
   select(-variable) %>%
   relocate(Name) %>%
   slice(match(row_order, Name)) 
+
+####Table 2
+######Examples of Variables and Tweets in Each Category
+
+data <- fread("finalPredictionState.csv")
+
+###Education Issue
+prop.table(table(data$education)) %>% `*`(100) %>% round(1)
+
+###Health Care Issue
+prop.table(table(data$health_care)) %>% `*`(100) %>% round(1)
+
+###Ideology
+####Liberal = -1, Neutral = 0, Conservative = 1.
+prop.table(table(data$ideology)) %>% `*`(100) %>% round(1)
+
+###Sentiment
+####Negative = -1, Neutral = 0, Positive = 1.
+prop.table(table(data$sentiment))%>% `*`(100) %>% round(1)
 
 ####Table 3
 ###Measures of Classification Accuracy: Computers Replicating Humans
@@ -143,33 +166,11 @@ processed_text  <- removeWords( processed_text, names_to_remove) %>%
 # #get rid of unnecessary spaces
 data$text <- str_squish(processed_text)
 
-data <- data %>% select(-X21)
-
 write_csv(data,"training_data_stateprez_processed.csv")
 
-# # # Take out retweet header
-# # clean_tweet <- str_replace(clean_tweet,"rt @[a-z,A-Z]*: ","")
-# # # Get rid of hashtags
-# # clean_tweet <- str_replace_all(clean_tweet,"#[a-z,A-Z]*","")
-# # Get rid of references to other screennames
-# # processed_text <- str_replace_all(processed_text,"@[a-z,A-Z]*","")
-# # write_csv(x=data,path="ProcessedDataDropScreenNames.csv")
-
-# ###########################################
-# setwd('~/tweetsclassification')
-# data <- read.csv('ProcessedDataLowNoLinkNoPunc.csv')
-# # dput(colnames(data))
-# attach(data)
-
-# processed_text <- text
-# for (name in  names_to_remove){
-#   processed_text <- str_replace_all(processed_text,name,"")
-# }
-
-# data$text <- processed_text
-
-# write_csv(x=data,path="ProcessedDataLowNoLinkNoPuncNoNames.csv")
 ############################
+##Process full text corpus
+
 data <- read_csv('State_Leg_Tweets_corpus.csv') %>%
   dplyr::select(-c(1:2,6:8)) %>%
   rename("id"=1,
@@ -188,15 +189,13 @@ processed_text <- gsub(" ?(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", processed_text)
 processed_text <- str_replace_all(processed_text," "," ")
 # remove punctuations
 processed_text <- gsub('[[:punct:] ]+',' ',processed_text)
-#drop screennames
-# for (name in  names_to_remove){
-#   processed_text <- str_replace_all(processed_text,name,"")
-# }
 
 data$text <- processed_text
 
 write_csv(data,"ProcessedFullCorpus_state.csv")
 
+##This line calls one's local version of Python to run the file "ml_classifier_final.py"
+###This is the equivalent of running python3 from terminal. 
 py_run_file("ml_classifier_final.py")
 
 ####Table 4
@@ -206,48 +205,49 @@ py_run_file("ml_classifier_final.py")
 
 ##load shor mccarty data from
 ##https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/AP54NE
-shor_mc <- read_dta("shor-mccarty.dta") %>%
-  filter(!is.na(hdistrict2016)) %>%
-  mutate(lastname = gsub("\\,.*","",name),
-         firstname = gsub(".*\\, ","",name)) %>%
-  rename("state"=st) %>%
-  group_by(state,name) %>%
-  mutate(count=n()) %>%
-  filter(count <2)
+# shor_mc <- read_dta("shor-mccarty.dta") %>%
+#   filter(!is.na(hdistrict2016)) %>%
+#   mutate(lastname = gsub("\\,.*","",name),
+#          firstname = gsub(".*\\, ","",name)) %>%
+#   rename("state"=st) %>%
+#   group_by(state,name) %>%
+#   mutate(count=n()) %>%
+#   filter(count <2)
+# 
+# ##load collapsed tweet frequencies
+# 
+# lh_tweets <- read_dta("Lower_House_Tweeting_FullSample.dta", encoding="latin1") %>%
+#   filter(fullname != "") %>%
+#   group_by(state,lastname, firstname) %>%
+#   mutate(count=n()) %>%
+#   distinct(state,lastname,firstname, .keep_all = T) %>%
+#   select(-party)
+# 
+# data <- left_join(lh_tweets, shor_mc, by=c("state","lastname","firstname")) %>%
+#   distinct() %>%
+#   mutate(fem_dum = ifelse(gender=="F",1,0),
+#          rep_dum = ifelse(party=="Rep" | party=="R",1,0),
+#          dem_dum = ifelse(party %in% c("Dem","Dem ","D","De,"), 1,0),
+#          womens_issues = education+health_care,
+#          Has_Handle = ifelse(nohandle==1,0,1)) %>%
+#   group_by(state, district, party) %>%
+#   mutate(ave_gender=mean(fem_dum),
+#          bos_dum = ifelse(ave_gender > 0 & ave_gender < 1, 1,0),
+#          counts_tobit = ifelse(is.na(counts),0,counts)) 
 
-##load collapsed tweet frequencies
-
-lh_tweets <- read_dta("Lower_House_Tweeting_FullSample.dta", encoding="latin1") %>%
-  filter(fullname != "") %>%
-  group_by(state,lastname, firstname) %>%
-  mutate(count=n()) %>%
-  distinct(state,lastname,firstname, .keep_all = T) %>%
-  select(-party)
-
-data <- left_join(lh_tweets, shor_mc, by=c("state","lastname","firstname")) %>%
-  distinct() %>%
-  mutate(fem_dum = ifelse(gender=="F",1,0),
-         rep_dum = ifelse(party=="Rep" | party=="R",1,0),
-         dem_dum = ifelse(party %in% c("Dem","Dem ","D","De,"), 1,0)) %>%
-  group_by(state, district, party) %>%
-  mutate(ave_gender=mean(fem_dum),
-         bos_dum = ifelse(ave_gender > 0 & ave_gender < 1, 1,0),
-         counts_tobit = ifelse(is.na(counts),0,counts)) 
-
-
-#data <- read_dta("Lower_House_Tweeting_Full with Ideal Points.dta")
+data <- read_dta("Lower_House_Tweeting_Full with Ideal Points.dta")
 
 ##multiply all percentages by 100
 data <- data %>% mutate_at(c("sentiment_total", "health_care", "education", "womens_issues"), list(~.*100))
 
-handle <- data %>% lm_robust(Has_Handle ~ fem_dum + dem_dum,data=., fixed_effects = ~ state_num) 
+handle <- data %>% lm_robust(Has_Handle ~ fem_dum + dem_dum,data=., fixed_effects = ~ state) 
 
-counts <- data %>% lm_robust(counts ~ fem_dum + dem_dum,data=., fixed_effects = ~ state_num) 
+counts <- data %>% lm_robust(counts ~ fem_dum + dem_dum,data=., fixed_effects = ~ state) 
 
-counts_tobit <- data %>% tobit(counts_tobit ~ fem_dum + dem_dum + 
-                                 factor(state_num),left=0,right=Inf,data=.) 
+counts_tobit <- data %>% tobit(counts_tobit ~ fem_dum + dem_dum + state,
+                               left=0,right=Inf,data=.) 
 
-modelsummary(list(handle, counts, counts_tobit), coef_omit = 'factor')
+modelsummary(list(handle, counts, counts_tobit), coef_omit = 'state')
 
 
 ##Table 5. 
@@ -369,8 +369,6 @@ health_care <- lm_robust(health_care ~ fem_dum + dem_dum+ years_since_elected, d
 education <- lm_robust(education ~ fem_dum + dem_dum+ years_since_elected, data=data,fixed_effects = ~ state_num)
 
 modelsummary(list(sent_tot, wom_iss, education,health_care))
-
-
 
 
 
